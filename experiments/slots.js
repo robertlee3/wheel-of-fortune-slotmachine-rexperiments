@@ -24,7 +24,7 @@ function onAssetsLoaded() {
     // Build the reels
     const reels = [];
     const reelContainer = new PIXI.Container();
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 3; i++) {
         const rc = new PIXI.Container();
         rc.x = i * REEL_WIDTH;
         reelContainer.addChild(rc);
@@ -57,13 +57,25 @@ function onAssetsLoaded() {
     // Build top & bottom covers and position reelContainer
     const margin = (app.screen.height - SYMBOL_SIZE * 3) / 2;
     reelContainer.y = margin;
-    reelContainer.x = Math.round(app.screen.width - REEL_WIDTH * 5);
+    reelContainer.x = Math.round(app.screen.width/2 - (REEL_WIDTH * 3)/2); //changed to center
     const top = new PIXI.Graphics();
-    top.beginFill(0, 1);
-    top.drawRect(0, 0, app.screen.width, margin);
+    top.beginFill(0, 1);                                                        //beginFill(color,alpha)
+    top.drawRect(0, 0, app.screen.width, margin);                               //drawRect(x, y, width, height)
     const bottom = new PIXI.Graphics();
     bottom.beginFill(0, 1);
     bottom.drawRect(0, SYMBOL_SIZE * 3 + margin, app.screen.width, margin);
+
+    //experiment draw a extra rect as a button
+    var centerH = app.screen.width /2;
+    var centerV = margin /2;
+    var buttonHeight = margin - 6;
+    var buttonWidth = 150;
+    var buttonStartX = centerH - (buttonWidth/2);
+    var buttonStartY = (centerV - (buttonHeight/2)) + SYMBOL_SIZE * 3 + margin;
+    const bottomButton = new PIXI.Graphics();
+    bottomButton.beginFill(0xC0C0C0,1);
+    bottomButton.drawRect(buttonStartX, buttonStartY, buttonWidth, buttonHeight);
+
 
     // Add play text
     const style = new PIXI.TextStyle({
@@ -83,10 +95,13 @@ function onAssetsLoaded() {
         wordWrapWidth: 440,
     });
 
-    const playText = new PIXI.Text('Spin the wheels!', style);
+    const playText = new PIXI.Text('Spin!', style);
     playText.x = Math.round((bottom.width - playText.width) / 2);
     playText.y = app.screen.height - margin + Math.round((margin - playText.height) / 2);
-    bottom.addChild(playText);
+
+    //changing parent of playText
+    //bottom.addChild(playText);                   //original
+    bottomButton.addChild(playText);
 
     // Add header text
     const headerText = new PIXI.Text('PIXI MONSTER SLOTS!', style);
@@ -96,11 +111,13 @@ function onAssetsLoaded() {
 
     app.stage.addChild(top);
     app.stage.addChild(bottom);
+    //experiment code to add button background
+    app.stage.addChild(bottomButton);
 
-    // Set the interactivity.
-    bottom.interactive = true;
-    bottom.buttonMode = true;
-    bottom.addListener('pointerdown', () => {
+    // Set the interactivity. //changed from bottom to bottomButton
+    bottomButton.interactive = true;
+    bottomButton.buttonMode = true;
+    bottomButton.addListener('pointerdown', () => {
         startPlay();
     });
 
@@ -113,10 +130,10 @@ function onAssetsLoaded() {
 
         for (let i = 0; i < reels.length; i++) {
             const r = reels[i];
-            const extra = Math.floor(Math.random() * 3);
-            const target = r.position + 10 + i * 5 + extra;
-            const time = 2500 + i * 600 + extra * 600;
-            tweenTo(r, 'position', target, time, backout(0.5), null, i === reels.length - 1 ? reelsComplete : null);
+            const target = r.position + 200 + i * 5;
+            const time = 1300 + i * 2100;
+            console.log('time:'+time);
+            tweenTo(r, 'position', target, time, backout(0.0125), null, i === reels.length - 1 ? reelsComplete : null);
         }
     }
 
@@ -175,6 +192,7 @@ app.ticker.add((delta) => {
     const now = Date.now();
     const remove = [];
     for (let i = 0; i < tweening.length; i++) {
+        console.log('ticker animate update: ' + i);
         const t = tweening[i];
         const phase = Math.min(1, (now - t.start) / t.time);
 
